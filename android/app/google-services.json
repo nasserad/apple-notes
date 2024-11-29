@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "145757475794",
+    "project_id": "apple-notes-meow",
+    "storage_bucket": "apple-notes-meow.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:145757475794:android:954158357ea95af23eee0b",
+        "android_client_info": {
+          "package_name": "meow.psps"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBVEZi_KyOR409V-z3XMOTS3Bh7nMDr1aA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
