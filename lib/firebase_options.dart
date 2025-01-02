@@ -85,4 +85,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'apple-notes-meow.firebasestorage.app',
     measurementId: 'G-VQW52CHWRK',
   );
+
 }

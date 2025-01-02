@@ -1,5 +1,3 @@
-import 'package:apple_notes/firebase_options.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -34,66 +32,62 @@ class _LoginViewState extends State<LoginView> {
       appBar: AppBar(
         title: const Text('Login'),
       ),
-      body: FutureBuilder(
-        future: Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        ),
-        builder: (context, snapshot) {
-          switch (snapshot.connectionState) {
-            case ConnectionState.done:
-              return Column(
-                children: [
-                  TextField(
-                    controller: _email,
-                    enableSuggestions: false,
-                    autocorrect: false,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                        hintText: 'Enter your email here.'),
-                  ),
-                  TextField(
-                    controller: _password,
-                    obscureText: true,
-                    enableSuggestions: false,
-                    autocorrect: false,
-                    decoration: const InputDecoration(
-                        hintText: 'Enter your password here.'),
-                  ),
-                  TextButton(
-                    onPressed: () async {
-                      final email = _email.text;
-                      final password = _password.text;
+      body: Column(
+        children: [
+          TextField(
+            controller: _email,
+            enableSuggestions: false,
+            autocorrect: false,
+            keyboardType: TextInputType.emailAddress,
+            decoration:
+                const InputDecoration(hintText: 'Enter your email here.'),
+          ),
+          TextField(
+            controller: _password,
+            obscureText: true,
+            enableSuggestions: false,
+            autocorrect: false,
+            decoration:
+                const InputDecoration(hintText: 'Enter your password here.'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final email = _email.text;
+              final password = _password.text;
 
-                      try {
-                        final userCredential = await FirebaseAuth.instance
-                            .signInWithEmailAndPassword(
-                          email: email,
-                          password: password,
-                        );
-                        print(userCredential);
-                      } on FirebaseAuthException catch (e) {
-                        if ((e.code == 'invalid-credential') ||
-                            (e.code == 'wrong-password')) {
-                          print('bitch');
-                          print(
-                              'Invalid credentials:\nIf an account with $email already exists, the given email or password is wrong.');
-                        } else if (e.code == 'invalid-email') {
-                          print('Please type a valid email.');
-                          print(e.code);
-                        } else {
-                          print('Something else happened!');
-                          print(e.code);
-                        }
-                      }
-                    },
-                    child: const Text('Login'),
-                  ),
-                ],
-              );
-            default:
-              return const Text('Loading...');
-          }
-        },
+              try {
+                final userCredential =
+                    await FirebaseAuth.instance.signInWithEmailAndPassword(
+                  email: email,
+                  password: password,
+                );
+                print(userCredential);
+              } on FirebaseAuthException catch (e) {
+                if ((e.code == 'invalid-credential') ||
+                    (e.code == 'wrong-password')) {
+                  print('beeb');
+                  print(
+                      'Invalid credentials:\nIf an account with $email already exists, the given email or password is wrong.');
+                } else if (e.code == 'invalid-email') {
+                  print('Please type a valid email.');
+                  print(e.code);
+                } else {
+                  print('Something else happened!');
+                  print(e.code);
+                }
+              }
+            },
+            child: const Text('Login'),
+          ),
+          TextButton(
+              onPressed: () {
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  '/register/',
+                  (route) => false,
+                );
+              },
+              child: Text("Don't Have An Account? Register Here!")),
+        ],
       ),
     );
   }
