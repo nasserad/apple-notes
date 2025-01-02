@@ -1,5 +1,6 @@
 import 'package:apple_notes/firebase_options.dart';
 import 'package:apple_notes/views/login_view.dart';
+import 'package:apple_notes/views/notes_view.dart';
 import 'package:apple_notes/views/register_view.dart';
 import 'package:apple_notes/views/verify_email_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -39,14 +40,13 @@ class HomePage extends StatelessWidget {
             final user = FirebaseAuth.instance.currentUser;
             if (user != null) {
               if (user.emailVerified) {
-                print('Email is verified.');
+                return const NotesView();
               } else {
                 return const VerifyEmailView();
               }
             } else {
               return const LoginView();
             }
-            return const Text('Done.');
           default:
             return const CircularProgressIndicator();
         }
