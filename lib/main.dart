@@ -1,3 +1,4 @@
+import 'package:apple_notes/constants/routes.dart';
 import 'package:apple_notes/firebase_options.dart';
 import 'package:apple_notes/views/login_view.dart';
 import 'package:apple_notes/views/notes_view.dart';
@@ -18,8 +19,9 @@ void main() {
       ),
       home: const HomePage(),
       routes: {
-        '/login/': (context) => const LoginView(),
-        '/register/': (context) => const RegisterView(),
+        loginRoute: (context) => const LoginView(),
+        registerRoute: (context) => const RegisterView(),
+        notesRoute: (context) => const NotesView(),
       },
     ),
   );

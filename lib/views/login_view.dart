@@ -1,5 +1,7 @@
+import 'package:apple_notes/constants/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:developer' as specialcandy show log;
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -61,19 +63,22 @@ class _LoginViewState extends State<LoginView> {
                   email: email,
                   password: password,
                 );
-                print(userCredential);
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  notesRoute,
+                  (route) => false,
+                );
               } on FirebaseAuthException catch (e) {
                 if ((e.code == 'invalid-credential') ||
                     (e.code == 'wrong-password')) {
-                  print('beeb');
-                  print(
+                  specialcandy.log('beeb');
+                  specialcandy.log(
                       'Invalid credentials:\nIf an account with $email already exists, the given email or password is wrong.');
                 } else if (e.code == 'invalid-email') {
-                  print('Please type a valid email.');
-                  print(e.code);
+                  specialcandy.log('Please type a valid email.');
+                  specialcandy.log(e.code);
                 } else {
-                  print('Something else happened!');
-                  print(e.code);
+                  specialcandy.log('Something else happened!');
+                  specialcandy.log(e.code);
                 }
               }
             },
@@ -82,11 +87,11 @@ class _LoginViewState extends State<LoginView> {
           TextButton(
               onPressed: () {
                 Navigator.of(context).pushNamedAndRemoveUntil(
-                  '/register/',
+                  registerRoute,
                   (route) => false,
                 );
               },
-              child: Text("Don't Have An Account? Register Here!")),
+              child: const Text("Don't Have An Account? Register Here!")),
         ],
       ),
     );
