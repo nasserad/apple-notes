@@ -1,9 +1,9 @@
 import 'package:apple_notes/constants/routes.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:apple_notes/enums/menu_action.dart';
+import 'package:apple_notes/services/auth/auth_service.dart';
+import 'package:apple_notes/utilities/show_logout_dialog.dart';
 import 'package:flutter/material.dart';
-import 'dart:developer' as specialcandy show log;
-
-enum MenuAction { logout }
+//import 'dart:developer' as specialcandy show log;
 
 class NotesView extends StatefulWidget {
   const NotesView({super.key});
@@ -25,7 +25,7 @@ class _NotesViewState extends State<NotesView> {
                 case MenuAction.logout:
                   final shouldLogout = await showLogOutDialog(context);
                   if (shouldLogout) {
-                    await FirebaseAuth.instance.signOut();
+                    await AuthService.firebase().signOut();
                     Navigator.of(context).pushNamedAndRemoveUntil(
                       loginRoute,
                       (route) => false,
@@ -47,28 +47,4 @@ class _NotesViewState extends State<NotesView> {
       ),
     );
   }
-}
-
-Future<bool> showLogOutDialog(BuildContext context) {
-  return showDialog<bool>(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text('Sign Out'),
-        content: const Text('Are you sure you wanna sign out?'),
-        actions: [
-          TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-              child: const Text('Cancel')),
-          TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
-              child: const Text('Sign Out')),
-        ],
-      );
-    },
-  ).then((value) => value ?? false);
 }
