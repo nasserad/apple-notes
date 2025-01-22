@@ -22,13 +22,19 @@ class NotesService {
   // is referenced (this is how it is in Dart).
   static final NotesService _sharedInstance =
       NotesService._sharedInstanceAkaASingleton();
-  NotesService._sharedInstanceAkaASingleton();
 
-  // SECOND: So, whenever NotesService() is called, it'll return the already created 
+  NotesService._sharedInstanceAkaASingleton() {
+    _notesStreamController = StreamController<List<DatabaseNote>>.broadcast(
+      onListen: () {
+        _notesStreamController.sink.add(_notes);
+      },
+    );
+  }
+
+  // SECOND: So, whenever NotesService() is called, it'll return the already created
   factory NotesService() => _sharedInstance;
 
-  final _notesStreamController =
-      StreamController<List<DatabaseNote>>.broadcast();
+  late final StreamController<List<DatabaseNote>> _notesStreamController;
 
   Stream<List<DatabaseNote>> get allNotes => _notesStreamController.stream;
 
@@ -135,7 +141,7 @@ class NotesService {
   }
 
   Future<DatabaseUser> getUser({required String email}) async {
-    await _ensureDbIsOpen(); // how does this lessen overhead specificslly.
+    await _ensureDbIsOpen(); //lessens overhead
     final db = _getDatabaseOrThrow();
 
     final results = await db.query(
@@ -356,5 +362,5 @@ const createNoteTable = '''
         "is_synced_with_cloud"	INTEGER NOT NULL DEFAULT 0,
         PRIMARY KEY("id" AUTOINCREMENT),
         FOREIGN KEY("user_id") REFERENCES "user"("id")
-      )
+      );
       ''';

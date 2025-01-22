@@ -30,7 +30,8 @@ class _NotesViewState extends State<NotesView> {
   }
 
   @override
-  void dispose() {
+  void dispose() async {
+    await _notesService.deleteAllNotes();
     _notesService.close();
     super.dispose();
   }
@@ -85,9 +86,19 @@ class _NotesViewState extends State<NotesView> {
                 stream: _notesService.allNotes,
                 builder: (context, snapshot) {
                   switch (snapshot.connectionState) {
-                    case ConnectionState.waiting: //waiting cuz we're dealing w a STREAM
-                    case ConnectionState.active:  //Here we implemented a 'FALLTHRU' (we need active cuz we need the logic to be here when state is active (stream returned one value but is not yet done))
-                      return const Text('waiitng for all notes...');
+                    case ConnectionState
+                          .waiting: //waiting cuz we're dealing w a STREAM
+                    case ConnectionState
+                          .active: //Here we implemented a 'FALLTHRU' (we need active cuz we need the logic to be here when state is active (stream returned one value but is not yet done))
+                      if (snapshot.hasData) {
+                        final allNotes = snapshot.data as List<DatabaseNote>;
+                        print('2.');
+                        print(allNotes);
+                        return const Text('Got all notes.');
+                      } else {
+                        print('1. snapshot didnt have data');
+                        return const CircularProgressIndicator();
+                      }
                     default:
                       return const CircularProgressIndicator();
                   }
