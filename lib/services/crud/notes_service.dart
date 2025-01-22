@@ -8,15 +8,24 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
 class NotesService {
+  //THIS CLASS HANDLES TALKING TO OUR DB. SO, ONLY ONE INSTANCE IS NEEDED
+  //(TO ESTABLISH A DB CONNECTION) AS MULTIPLE CONNECTIONS COULD CAUSE ERRORS/
+  //UNNECESSARY OVERHEAD. (this is how we ensure that the db connection, _notes
+  //cache, and streamcontroller are shared across the app).
+
   Database? _db;
 
   List<DatabaseNote> _notes = [];
 
+  // SINGLETON
+  // FIRST: Our singleton instance is first-ever created (basically the lines below) the first time the NotesService class
+  // is referenced (this is how it is in Dart).
   static final NotesService _sharedInstance =
       NotesService._sharedInstanceAkaASingleton();
   NotesService._sharedInstanceAkaASingleton();
+
+  // SECOND: So, whenever NotesService() is called, it'll return the already created 
   factory NotesService() => _sharedInstance;
-  // i dont understand the singleton here, why? how? the syntax? wtf is being done here logic wise?? and connection to noteS_view code??
 
   final _notesStreamController =
       StreamController<List<DatabaseNote>>.broadcast();

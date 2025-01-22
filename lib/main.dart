@@ -1,7 +1,8 @@
 import 'package:apple_notes/constants/routes.dart';
 import 'package:apple_notes/services/auth/auth_service.dart';
 import 'package:apple_notes/views/login_view.dart';
-import 'package:apple_notes/views/notes_view.dart';
+import 'package:apple_notes/views/notes/new_note_view.dart';
+import 'package:apple_notes/views/notes/notes_view.dart';
 import 'package:apple_notes/views/register_view.dart';
 import 'package:apple_notes/views/verify_email_view.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +22,7 @@ void main() {
         registerRoute: (context) => const RegisterView(),
         notesRoute: (context) => const NotesView(),
         verifyEmailRoute: (context) => const VerifyEmailView(),
+        newNoteRoute: (context) => const NewNoteView(),
       },
     ),
   );

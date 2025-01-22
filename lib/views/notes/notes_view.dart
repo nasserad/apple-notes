@@ -15,15 +15,16 @@ class NotesView extends StatefulWidget {
 
 class _NotesViewState extends State<NotesView> {
   //why late?
+  // Because we deferred the initialization to initState() to ensure proper runtime logic
+  // where we (for example) do not initialize a notesService instance b4 user authentication,
+  // or some other functionality (that the service is dependent on) is ready/initialized.
   late final NotesService _notesService;
   String get userEmail => AuthService.firebase().currentUser!.email!;
 
-  //missing stream
-
   @override
   void initState() {
-    // we need a singleton here (we do not want more than one instance of the class)
-    _notesService = NotesService(); //why no new keyword?
+    _notesService =
+        NotesService(); //We're able to initialize here becuz of the LATE keyword.
     //_notesService.open(); no need (we embedded it in all the db functions, so it will automatically be called thru ensureDbIsOpen())
     super.initState();
   }
@@ -38,8 +39,17 @@ class _NotesViewState extends State<NotesView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Main UI'),
+        title: const Text('Your Notes'),
         actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).pushNamed(newNoteRoute);
+              // We didnt use push namedAndRemoveUntil becuz we want the user
+              // to be able to come back to this view (notes view), whenever
+              // they want.
+            },
+            icon: const Icon(Icons.add),
+          ),
           PopupMenuButton(
             onSelected: (value) async {
               switch (value) {
