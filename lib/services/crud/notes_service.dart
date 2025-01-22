@@ -1,14 +1,53 @@
+import 'dart:async';
+
 import 'package:apple_notes/services/crud/crud_exceptions.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' show join;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:sqflite/utils/utils.dart';
 
 class NotesService {
   Database? _db;
+
+  List<DatabaseNote> _notes = [];
+
+  static final NotesService _sharedInstance =
+      NotesService._sharedInstanceAkaASingleton();
+  NotesService._sharedInstanceAkaASingleton();
+  factory NotesService() => _sharedInstance;
+  // i dont understand the singleton here, why? how? the syntax? wtf is being done here logic wise?? and connection to noteS_view code??
+
+  final _notesStreamController =
+      StreamController<List<DatabaseNote>>.broadcast();
+
+  Stream<List<DatabaseNote>> get allNotes => _notesStreamController.stream;
+
+  Future<void> _cacheNotes() async {
+    final allNotes = await getAllNotes();
+    _notes = allNotes.toList();
+    _notesStreamController.add(_notes);
+  }
+
+  Future<DatabaseUser> getOrCreateUser({required String email}) async {
+    try {
+      final user = await getUser(email: email);
+      return user;
+    } on CouldNotFindUserException {
+      final createdUser = await createUser(email: email);
+      return createdUser;
+    } catch (e) {
+      rethrow; //???
+    }
+  }
+
+  Future<void> _ensureDbIsOpen() async {
+    try {
+      await open();
+    } on DatabaseAlreadyOpenException {
+      //Nothing.
+    }
+  }
 
   Future<void> open() async {
     if (_db != null) {
@@ -24,6 +63,7 @@ class NotesService {
       await db.execute(createUserTable);
 
       await db.execute(createNoteTable);
+      await _cacheNotes();
     } on MissingPlatformDirectoryException {
       throw UnableToGetDocumentsDirectoyException();
     }
@@ -49,6 +89,7 @@ class NotesService {
   }
 
   Future<void> deleteUser({required String email}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final deletedCount = await db.delete(
       userTable,
@@ -62,6 +103,7 @@ class NotesService {
   }
 
   Future<DatabaseUser> createUser({required String email}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final results = await db.query(
       userTable,
@@ -84,6 +126,7 @@ class NotesService {
   }
 
   Future<DatabaseUser> getUser({required String email}) async {
+    await _ensureDbIsOpen(); // how does this lessen overhead specificslly.
     final db = _getDatabaseOrThrow();
 
     final results = await db.query(
@@ -101,6 +144,7 @@ class NotesService {
   }
 
   Future<DatabaseNote> createNote({required DatabaseUser owner}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
 
     final dbUser =
@@ -124,28 +168,42 @@ class NotesService {
       isSyncedWithCloud: true,
     );
 
+    _notes.add(note);
+    _notesStreamController.add(_notes);
+
     return note;
   }
 
   Future<void> deleteNote({required int id}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
-    final deletedNote = await db.delete(
+    final deletedCount = await db.delete(
       noteTable,
       where: 'id = ?',
       whereArgs: [id],
     );
 
-    if (deletedNote == 0) {
+    if (deletedCount == 0) {
       throw CouldNotDeleteNoteException();
+    } else {
+      _notes.removeWhere((note) => note.id == id);
+      _notesStreamController.add(_notes);
     }
   }
 
   Future<int> deleteAllNotes() async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
-    return await db.delete(noteTable);
+    final numOfDeletions = await db.delete(noteTable);
+
+    _notes = [];
+    _notesStreamController.add(_notes);
+
+    return numOfDeletions;
   }
 
   Future<DatabaseNote> getNote({required int id}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final notes = await db.query(
       noteTable,
@@ -157,11 +215,20 @@ class NotesService {
     if (notes.isEmpty) {
       throw CouldNotFindNoteException();
     } else {
-      return DatabaseNote.fromRow(notes.first);
+      final targetedNote = DatabaseNote.fromRow(
+        notes.first,
+      ); // if found translate (only first fetched) to a dart entity (instance of DatabaseNote).
+
+      _notes.removeWhere((note) => note.id == id);
+      _notes.add(targetedNote);
+      _notesStreamController.add(_notes);
+
+      return targetedNote;
     }
   }
 
   Future<Iterable<DatabaseNote>> getAllNotes() async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final notes = await db.query(noteTable);
 
@@ -172,6 +239,7 @@ class NotesService {
     required DatabaseNote note,
     required String text,
   }) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
 
     await getNote(id: note.id);
@@ -184,14 +252,22 @@ class NotesService {
     if (updatesCount == 0) {
       throw CouldNotUpdateNoteException();
     } else {
-      return await getNote(id: note.id);
+      final updatedNote = await getNote(id: note.id);
+
+      _notes.removeWhere((note) => note.id == updatedNote.id);
+      _notes.add(updatedNote);
+      _notesStreamController.add(_notes);
+      //dont understand the syntax at all
+
+      return updatedNote;
     }
   }
 }
 
-@immutable //Because this is basically like a db-translation class (translates db records to dart objects)
+// Why immutable? Because this is basically like a db-translation class (translates db records to dart objects)
 // so this isnt the place to change data, the logic here strictly concerns translation/fetching-data, instead of modifying it
 // thus, we make it immutable to ensure that> increase code robustness+optimization> and protect it.
+@immutable
 class DatabaseUser {
   final int id;
   final String email;

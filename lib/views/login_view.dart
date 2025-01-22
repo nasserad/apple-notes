@@ -70,7 +70,7 @@ class _LoginViewState extends State<LoginView> {
                   Navigator.of(context).pushNamedAndRemoveUntil(
                     notesRoute,
                     (route) => false,
-                  );
+                  ); // Made an assumption in notes view which connects to the logic of this.
                 } else {
                   Navigator.of(context).pushNamedAndRemoveUntil(
                     verifyEmailRoute,
