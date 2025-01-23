@@ -257,10 +257,15 @@ class NotesService {
 
     await getNote(id: note.id);
 
-    final updatesCount = await db.update(noteTable, {
-      textColumn: text,
-      isSyncedWithCloudColumn: 0,
-    });
+    final updatesCount = await db.update(
+      noteTable,
+      {
+        textColumn: text,
+        isSyncedWithCloudColumn: 0,
+      },
+      where: 'id = ?',
+      whereArgs: [note.id],
+    );
 
     if (updatesCount == 0) {
       throw CouldNotUpdateNoteException();
@@ -327,7 +332,7 @@ class DatabaseNote {
 
   @override
   String toString() =>
-      'Note, ID = $id, UserID = $userId, IsSyncedWithCloud = $isSyncedWithCloud, Text = $text';
+      'Note, ID = $id, UserID = $userId, IsSyncedWithCloud = $isSyncedWithCloud, Text = $text\n';
 
   @override
   bool operator ==(covariant DatabaseNote other) => id == other.id;

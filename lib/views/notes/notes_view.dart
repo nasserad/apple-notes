@@ -29,17 +29,12 @@ class _NotesViewState extends State<NotesView> {
     super.initState();
   }
 
-  // @override
-  // void dispose() {
-  //   _notesService.close();
-  //   super.dispose();
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Your Notes'),
+        backgroundColor: const Color.fromARGB(66, 14, 6, 6),
         actions: [
           IconButton(
             onPressed: () {
@@ -91,7 +86,20 @@ class _NotesViewState extends State<NotesView> {
                           .active: //Here we implemented a 'FALLTHRU' (we need active cuz we need the logic to be here when state is active (stream returned one value but is not yet done))
                       if (snapshot.hasData) {
                         final allNotes = snapshot.data as List<DatabaseNote>;
-                        return const Text('Got all notes.');
+                        return ListView.builder(
+                          itemCount: allNotes.length,
+                          itemBuilder: (context, index) {
+                            final note = allNotes[index];
+                            return ListTile(
+                              title: Text(
+                                note.text,
+                                maxLines: 1,
+                                softWrap: true,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            );
+                          },
+                        );
                       } else {
                         return const CircularProgressIndicator();
                       }
