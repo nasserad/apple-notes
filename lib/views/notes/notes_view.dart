@@ -25,7 +25,10 @@ class _NotesViewState extends State<NotesView> {
   void initState() {
     _notesService =
         NotesService(); //We're able to initialize here becuz of the LATE keyword.
-    //_notesService.open(); no need (we embedded it in all the db functions, so it will automatically be called thru ensureDbIsOpen())
+
+    _notesService
+        .open(); //no need (we embedded it in all the db functions, so it will automatically be called thru ensureDbIsOpen())
+    print('User Email: $userEmail');
     super.initState();
   }
 

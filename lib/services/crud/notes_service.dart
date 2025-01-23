@@ -46,10 +46,15 @@ class NotesService {
 
   Future<DatabaseUser> getOrCreateUser({required String email}) async {
     try {
+      print('=> entered getOrCreateUser\n');
+      print('=> trying to get user\n');
       final user = await getUser(email: email);
+      print('=> successfully gotten the user, returning now\n');
       return user;
     } on CouldNotFindUserException {
+      print('=> could not find user, attempting to create\n');
       final createdUser = await createUser(email: email);
+      print('=> created successfully, returning now\n');
       return createdUser;
     } catch (e) {
       rethrow; //???
@@ -57,29 +62,42 @@ class NotesService {
   }
 
   Future<void> _ensureDbIsOpen() async {
+    print('0> entered ensureDbIsOpen\n');
     try {
+      print('0> trying to open db\n');
       await open();
     } on DatabaseAlreadyOpenException {
+      print('0> db is already open, returning now\n');
       //Nothing.
     }
   }
 
   Future<void> open() async {
+    print('@> entered openDB, checking if db already exists\n');
     if (_db != null) {
-      throw DatabaseAlreadyOpenException;
+      print('@> db already exists, throwing exception\n');
+      //throw DatabaseAlreadyOpenException;
+      return;
     }
-
+    print('@> db does not exist, attempting to get docs directory\n');
     try {
       final docsPath = await getApplicationDocumentsDirectory();
+      print('@> got docs directory, attempting to join db name with path\n');
       final dbPath = join(docsPath.path, dbName);
+      print('@> joined db name with path, attempting to open db\n');
       final db = await openDatabase(dbPath);
+      print('@> opened db successfully and saving it to local var\n');
       _db = db;
 
+      print('@> attempting to create tables\n');
       await db.execute(createUserTable);
 
       await db.execute(createNoteTable);
+      print('@> tables created successfully, attempting to cache notes\n');
       await _cacheNotes();
+      print('@> notes cached successfully, returning now\n');
     } on MissingPlatformDirectoryException {
+      print('@> could not get docs directory, throwing exception\n');
       throw UnableToGetDocumentsDirectoyException();
     }
   }
@@ -118,8 +136,11 @@ class NotesService {
   }
 
   Future<DatabaseUser> createUser({required String email}) async {
+    print('+> entered createUser, ensuring db is open\n');
     await _ensureDbIsOpen();
+    print('+> db is open, attempting to get db\n');
     final db = _getDatabaseOrThrow();
+    print('+> gotten db successfully, attempting to query db for that user\n');
     final results = await db.query(
       userTable,
       limit: 1,
@@ -127,12 +148,15 @@ class NotesService {
       whereArgs: [email.toLowerCase()],
     );
     if (results.isNotEmpty) {
+      print('+> the user was found in db, creation stopped\n');
       throw UserAlreadyExistsException();
     }
-
+    print(
+        '+> the user was not found in db, attempting to insert one into db\n');
     final userId = await db.insert(userTable, {
       emailColumn: email.toLowerCase(),
     });
+    print('+> user inserted successfully with id: ${userId}, returning now\n');
 
     return DatabaseUser(
       id: userId,
@@ -141,19 +165,26 @@ class NotesService {
   }
 
   Future<DatabaseUser> getUser({required String email}) async {
+    print('-> entered getUser\n');
     await _ensureDbIsOpen(); //lessens overhead
+    print('-> trying to get db\n');
     final db = _getDatabaseOrThrow();
+    print('-> gotten the db\n');
 
+    print('-> trying to query the db\n');
     final results = await db.query(
       userTable,
       limit: 1,
       where: 'email = ?',
       whereArgs: [email.toLowerCase()],
     );
+    print('-> queryed the db\n');
 
     if (results.isEmpty) {
+      print('-> no such user in db\n');
       throw CouldNotFindUserException();
     } else {
+      print('-> found user in db and retrieved it successfully\n');
       return DatabaseUser.fromRow(results.first);
     }
   }
