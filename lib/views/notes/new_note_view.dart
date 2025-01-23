@@ -45,11 +45,8 @@ class _NewNoteViewState extends State<NewNoteView> {
       return existingNote;
     }
     final currentUser = AuthService.firebase().currentUser!;
-    print('A.Current User:\n${currentUser}');
     final email = currentUser.email!;
-    print('B.Current Email of that user:\n${email}');
     final owner = await _notesService.getUser(email: email);
-    print('C.Current Owner:\n${owner}');
     return await _notesService.createNote(owner: owner);
   }
 
@@ -90,14 +87,8 @@ class _NewNoteViewState extends State<NewNoteView> {
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.done:
-              if (snapshot.hasData && snapshot.data != null) {
-                _note = snapshot.data as DatabaseNote;
-                _setupTextControllerListener();
-              } else {
-                // Handle the case where snapshot.data is null
-                print("snapshot didn't have data");
-                _note = null; // or handle it appropriately
-              }
+              _note = snapshot.data as DatabaseNote;
+              _setupTextControllerListener();
               return TextField(
                 controller: _textController,
                 keyboardType: TextInputType.multiline,

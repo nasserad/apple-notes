@@ -25,10 +25,7 @@ class _NotesViewState extends State<NotesView> {
   void initState() {
     _notesService =
         NotesService(); //We're able to initialize here becuz of the LATE keyword.
-
-    _notesService
-        .open(); //no need (we embedded it in all the db functions, so it will automatically be called thru ensureDbIsOpen())
-    print('User Email: $userEmail');
+    //_notesService.open(); //no need (we embedded it in all the db functions, so it will automatically be called thru ensureDbIsOpen())
     super.initState();
   }
 
@@ -94,11 +91,8 @@ class _NotesViewState extends State<NotesView> {
                           .active: //Here we implemented a 'FALLTHRU' (we need active cuz we need the logic to be here when state is active (stream returned one value but is not yet done))
                       if (snapshot.hasData) {
                         final allNotes = snapshot.data as List<DatabaseNote>;
-                        print('2.');
-                        print(allNotes);
                         return const Text('Got all notes.');
                       } else {
-                        print('1. snapshot didnt have data');
                         return const CircularProgressIndicator();
                       }
                     default:
