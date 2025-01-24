@@ -42,11 +42,7 @@ class FirebaseCloudStorage {
           .then((value) {
         return value.docs.map(
           (doc) {
-            return CloudNote(
-              documentId: doc.id,
-              ownerUserId: doc.data()[ownerUserIdFieldName],
-              text: doc.data()[textFieldName],
-            );
+            return CloudNote.fromSnapshot(doc);
           },
         );
       });
@@ -55,11 +51,17 @@ class FirebaseCloudStorage {
     }
   }
 
-  void createNewNote({required String ownerUserId}) async {
-    await notes.add({
+  Future<CloudNote> createNewNote({required String ownerUserId}) async {
+    final document = await notes.add({
       ownerUserIdFieldName: ownerUserId,
       textFieldName: '',
     });
+    final fetchedNote = await document.get();
+    return CloudNote(
+      documentId: fetchedNote.id,
+      ownerUserId: ownerUserId,
+      text: '',
+    );
   }
 
   // SINGLETON

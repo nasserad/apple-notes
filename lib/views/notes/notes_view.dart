@@ -1,6 +1,8 @@
 import 'package:apple_notes/constants/routes.dart';
 import 'package:apple_notes/enums/menu_action.dart';
 import 'package:apple_notes/services/auth/auth_service.dart';
+import 'package:apple_notes/services/cloud/cloud_note.dart';
+import 'package:apple_notes/services/cloud/firebase_cloud_storage.dart';
 import 'package:apple_notes/services/crud/notes_service.dart';
 import 'package:apple_notes/utilities/dialogs/logout_dialog.dart';
 import 'package:apple_notes/views/notes/notes_list_view.dart';
@@ -19,13 +21,13 @@ class _NotesViewState extends State<NotesView> {
   // Because we deferred the initialization to initState() to ensure proper runtime logic
   // where we (for example) do not initialize a notesService instance b4 user authentication,
   // or some other functionality (that the service is dependent on) is ready/initialized.
-  late final NotesService _notesService;
-  String get userEmail => AuthService.firebase().currentUser!.email;
+  late final FirebaseCloudStorage _notesService;
+  String get userId => AuthService.firebase().currentUser!.id;
 
   @override
   void initState() {
     _notesService =
-        NotesService(); //We're able to initialize here becuz of the LATE keyword.
+        FirebaseCloudStorage(); //We're able to initialize here becuz of the LATE keyword.
     //_notesService.open(); //no need (we embedded it in all the db functions, so it will automatically be called thru ensureDbIsOpen())
     super.initState();
   }
@@ -72,41 +74,30 @@ class _NotesViewState extends State<NotesView> {
           )
         ],
       ),
-      body: FutureBuilder(
-        future: _notesService.getOrCreateUser(email: userEmail),
+      body: StreamBuilder(
+        stream: _notesService.allNotes(ownerUserId: userId),
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
-            case ConnectionState.done: //done cuz we're dealing w a FUTURE
-              return StreamBuilder(
-                stream: _notesService.allNotes,
-                builder: (context, snapshot) {
-                  switch (snapshot.connectionState) {
-                    case ConnectionState
-                          .waiting: //waiting cuz we're dealing w a STREAM
-                    case ConnectionState
-                          .active: //Here we implemented a 'FALLTHRU' (we need active cuz we need the logic to be here when state is active (stream returned one value but is not yet done))
-                      if (snapshot.hasData) {
-                        final allNotes = snapshot.data as List<DatabaseNote>;
-                        return NotesListView(
-                          notes: allNotes,
-                          onDeleteNote: (note) async {
-                            await _notesService.deleteNote(id: note.id);
-                          },
-                          onTap: (note) {
-                            Navigator.of(context).pushNamed(
-                              createOrUpdateNoteRoute,
-                              arguments: note,
-                            );
-                          },
-                        );
-                      } else {
-                        return const CircularProgressIndicator();
-                      }
-                    default:
-                      return const CircularProgressIndicator();
-                  }
-                },
-              );
+            case ConnectionState.waiting: //waiting cuz we're dealing w a STREAM
+            case ConnectionState
+                  .active: //Here we implemented a 'FALLTHRU' (we need active cuz we need the logic to be here when state is active (stream returned one value but is not yet done))
+              if (snapshot.hasData) {
+                final allNotes = snapshot.data as Iterable<CloudNote>;
+                return NotesListView(
+                  notes: allNotes,
+                  onDeleteNote: (note) async {
+                    await _notesService.deleteNote(documentId: note.documentId);
+                  },
+                  onTap: (note) {
+                    Navigator.of(context).pushNamed(
+                      createOrUpdateNoteRoute,
+                      arguments: note,
+                    );
+                  },
+                );
+              } else {
+                return const CircularProgressIndicator();
+              }
             default:
               return const CircularProgressIndicator();
           }
