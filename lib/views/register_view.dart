@@ -1,7 +1,7 @@
 import 'package:apple_notes/constants/routes.dart';
 import 'package:apple_notes/services/auth/auth_exceptions.dart';
 import 'package:apple_notes/services/auth/auth_service.dart';
-import 'package:apple_notes/utilities/show_error_dialog.dart';
+import 'package:apple_notes/utilities/dialogs/error_dialog.dart';
 import 'package:flutter/material.dart';
 //import 'dart:developer' as specialcandy show log;
 

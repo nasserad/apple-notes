@@ -2,7 +2,8 @@ import 'package:apple_notes/constants/routes.dart';
 import 'package:apple_notes/enums/menu_action.dart';
 import 'package:apple_notes/services/auth/auth_service.dart';
 import 'package:apple_notes/services/crud/notes_service.dart';
-import 'package:apple_notes/utilities/show_logout_dialog.dart';
+import 'package:apple_notes/utilities/dialogs/logout_dialog.dart';
+import 'package:apple_notes/views/notes/notes_list_view.dart';
 import 'package:flutter/material.dart';
 //import 'dart:developer' as specialcandy show log;
 
@@ -34,7 +35,7 @@ class _NotesViewState extends State<NotesView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Your Notes'),
-        backgroundColor: const Color.fromARGB(66, 14, 6, 6),
+        backgroundColor: const Color.fromARGB(255, 61, 182, 93),
         actions: [
           IconButton(
             onPressed: () {
@@ -49,7 +50,7 @@ class _NotesViewState extends State<NotesView> {
             onSelected: (value) async {
               switch (value) {
                 case MenuAction.logout:
-                  final shouldLogout = await showLogOutDialog(context);
+                  final shouldLogout = await showLogoutDialog(context);
                   if (shouldLogout) {
                     await AuthService.firebase().signOut();
                     Navigator.of(context).pushNamedAndRemoveUntil(
@@ -86,18 +87,10 @@ class _NotesViewState extends State<NotesView> {
                           .active: //Here we implemented a 'FALLTHRU' (we need active cuz we need the logic to be here when state is active (stream returned one value but is not yet done))
                       if (snapshot.hasData) {
                         final allNotes = snapshot.data as List<DatabaseNote>;
-                        return ListView.builder(
-                          itemCount: allNotes.length,
-                          itemBuilder: (context, index) {
-                            final note = allNotes[index];
-                            return ListTile(
-                              title: Text(
-                                note.text,
-                                maxLines: 1,
-                                softWrap: true,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            );
+                        return NotesListView(
+                          notes: allNotes,
+                          onDeleteNote: (note) async {
+                            await _notesService.deleteNote(id: note.id);
                           },
                         );
                       } else {
