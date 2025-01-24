@@ -20,7 +20,7 @@ class _NotesViewState extends State<NotesView> {
   // where we (for example) do not initialize a notesService instance b4 user authentication,
   // or some other functionality (that the service is dependent on) is ready/initialized.
   late final NotesService _notesService;
-  String get userEmail => AuthService.firebase().currentUser!.email!;
+  String get userEmail => AuthService.firebase().currentUser!.email;
 
   @override
   void initState() {
